@@ -16,10 +16,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/catalog")
 public class MovieCatalogController {
 
+    private final RestTemplate restTemplate;
+
+    public MovieCatalogController(final RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     @GetMapping("/{userId}")
     public List<CatalogItem> movieCatalogs(@PathVariable("userId") final String userId) {
-        RestTemplate restTemplate = new RestTemplate();
-
         List<Rating> ratings = List.of(new Rating("a", 4), new Rating("b", 5));
 
         return

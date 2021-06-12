@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.dto.Movie;
 import com.example.dto.Rating;
+import com.example.dto.UserRatings;
 import com.example.models.CatalogItem;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,10 +29,10 @@ public class MovieCatalogController {
 
     @GetMapping("/{userId}")
     public List<CatalogItem> movieCatalogs(@PathVariable("userId") final String userId) {
-        List<Rating> ratings = List.of(new Rating("a", 4), new Rating("b", 5));
+        UserRatings ratings = restTemplate.getForObject("http://localhost:8082/ratingData/user/" + userId, UserRatings.class);
 
         return
-            ratings.stream()
+            ratings.getRatings().stream()
                 .map(rating -> {
                     Movie movie = restTemplate.getForObject("http://localhost:8081/movie/" + rating.getMovieId(), Movie.class);
                     return new CatalogItem(movie.getName(), movie.getId(), rating.getRating());

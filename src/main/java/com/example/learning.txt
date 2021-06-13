@@ -1,0 +1,14 @@
+
+Problems in Microservices:
+    1: Service instance Go Down.
+    2: Service is slow.
+
+
+Solution to Problem 1:
+    : create multiple instance of same service and service discovery
+        will take care of everything after that. If one service go
+        down service discovery will redirect the requests to the
+        available instance.
+
+Solution to Problem 2:
+    : use circuit breaker pattern.

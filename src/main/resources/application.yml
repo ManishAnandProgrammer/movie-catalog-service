@@ -1,18 +1,35 @@
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      slidingWindowSize: 5
-      permittedNumberOfCallsInHalfOpenState: 2
-      waitDurationInOpenState: 10000
-      failureRateThreshold: 60
-      eventConsumerBufferSize: 10
-      registerHealthIndicator: true
-    someShared:
-      slidingWindowSize: 50
-      permittedNumberOfCallsInHalfOpenState: 10
-  instances:
-    backendA:
-      baseConfig: default
-      waitDurationInOpenState: 5000
-    backendB:
-      baseConfig: someShared
+resilience4j:
+  circuitbreaker:
+    instances:
+      movieInfo:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        waitDurationInOpenState: 5s
+        slidingWindowType: COUNT_BASED
+      ratings:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 2
+        permittedNumberOfCallsInHalfOpenState: 1
+        slidingWindowSize: 5
+        waitDurationInOpenState: 5s
+        slidingWindowType: COUNT_BASED
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always

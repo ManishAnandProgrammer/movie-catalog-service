@@ -4,7 +4,10 @@ import com.example.dto.Movie;
 import com.example.dto.Rating;
 import com.example.dto.UserRatings;
 import com.example.models.CatalogItem;
+import com.example.service.MovieService;
+import com.example.service.RatingService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,30 +28,28 @@ public class MovieCatalogController {
 
     private final RestTemplate restTemplate;
     private final WebClient.Builder webClientBuilder;
+    private final MovieService movieService;
+    private final RatingService ratingService;
 
     public MovieCatalogController(final RestTemplate restTemplate,
-                                  final WebClient.Builder webClientBuilder) {
+                                  final WebClient.Builder webClientBuilder,
+                                  final MovieService movieService,
+                                  final RatingService ratingService) {
         this.restTemplate = restTemplate;
         this.webClientBuilder = webClientBuilder;
+        this.movieService = movieService;
+        this.ratingService = ratingService;
     }
 
     @GetMapping("/{userId}")
-    @CircuitBreaker(name = "my", fallbackMethod = "movieCatalogFallback")
     public List<CatalogItem> movieCatalogs(@PathVariable("userId") final String userId) {
-        UserRatings ratings = restTemplate.getForObject("http://ratings-data-service/ratingData/user/" + userId, UserRatings.class);
-        return
-                ratings.getRatings().stream()
+        UserRatings ratings = ratingService.getUserRatings(userId);
+        return ratings.getRatings().stream()
                         .map(rating -> {
-                            Movie movie = restTemplate.getForObject("http://movie-info-service/movie/" + rating.getMovieId(), Movie.class);
+                            Movie movie = movieService.getMovie(rating);
                             return new CatalogItem(movie.getName(), movie.getDescription(), rating.getRating());
                         }).collect(Collectors.toList());
     }
-
-    public List<CatalogItem> movieCatalogFallback(String userId, Throwable exception) {
-        LOGGER.error("Exception in Fetching Movie Details:: ", exception);
-        return List.of(new CatalogItem("No Movie Name", "No Discription", 0));
-    }
-
 
     @GetMapping("/webclient/{userId}")
     public List<CatalogItem> movieCatalogsWithWebClient(@PathVariable("userId") final String userId) {
